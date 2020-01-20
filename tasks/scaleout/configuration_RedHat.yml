@@ -1,0 +1,58 @@
+---
+
+- name: pcs maintenance
+  shell: "pcs property set maintenance-mode=true"
+  run_once: true
+
+- name: pcs rsc_SAPHanaTopology
+  shell: "pcs resource create rsc_SAPHanaTopology_{{ sidup }}_HDB{{sap_system_number}} SAPHanaTopologyScaleOut SID={{ sidup }} InstanceNumber={{ sap_system_number }} op start timeout=600 op stop timeout=300 op monitor interval=10 timeout=600"
+  run_once: true
+
+- name: pcs rsc_SAPHanaTopology clone
+  shell: "pcs resource clone rsc_SAPHanaTopology_{{ sidup }}_HDB{{sap_system_number}} meta clone-node-max=1 interleave=true"
+  run_once: true
+
+- name: SAPHanaController
+  shell: "pcs resource create rsc_SAPHana_{{ sidup }}_HDB{{sap_system_number}} SAPHanaController \
+  SID={{ sidup }} \
+  InstanceNumber={{ sap_system_number }} \
+  PREFER_SITE_TAKEOVER=true \
+  DUPLICATE_PRIMARY_TIMEOUT=7200 \
+  AUTOMATED_REGISTER=true \
+  op start interval=0 timeout=3600 \
+  op stop interval=0 timeout=3600 \
+  op promote interval=0 timeout=3600 \
+  op monitor interval=60 role=Master timeout=700 \
+  op monitor interval=61 role=Slave timeout=700"
+  run_once: true
+
+- name: "pcs Controller clone"
+  shell: "pcs resource master msl_rsc_SAPHana_{{ sidup }}_HDB{{sap_system_number}} rsc_SAPHana_{{ sidup }}_HDB{{sap_system_number}} \
+  meta master-max='1' clone-node-max=1 interleave=true"
+  run_once: true
+
+- name: "pcs Constraint"
+  shell: "pcs constraint order \
+  rsc_SAPHanaTopology_{{ sidup }}_HDB{{sap_system_number}}-clone then msl_rsc_SAPHana_{{ sidup }}_HDB{{sap_system_number}}"
+  run_once: true
+
+- name: "pcs IP"
+  shell: "pcs resource create rsc_ip_SAPHana_{{ sidup }}_HDB{{sap_system_number}} ocf:heartbeat:IPaddr2 ip={{ sva_pacemaker_vip }} op monitor interval='10s' timeout='20s'"
+  run_once: true
+
+- name: "pcs Constraint IP"
+  shell: "pcs constraint colocation \
+  add rsc_ip_SAPHana_{{ sidup }}_HDB{{sap_system_number}} with master msl_rsc_SAPHana_{{ sidup }}_HDB{{sap_system_number}}"
+  run_once: true
+
+- name: "disable majority maker for SAP HANA Resources"
+  shell: "pcs constraint location msl_rsc_SAPHana_{{ sidup }}_HDB{{sap_system_number}} avoids {{ majoritymaker }}"
+  run_once: true
+
+- name: "disable majority maker for SAP HANA Resources part 2"
+  shell: "pcs constraint location rsc_SAPHanaTopology_{{ sidup }}_HDB{{sap_system_number}}-clone avoids {{ majoritymaker }}"
+  run_once: true
+
+- name: pcs maintenance
+  shell: "pcs property set maintenance-mode=false"
+  run_once: true

@@ -1,0 +1,13 @@
+---
+- name: sapcontrol -nr <Inst> -function StopSystem
+  shell: /usr/local/bin/stopsystem.sh
+  become: yes
+  become_user: "{{sid}}adm"
+  when: deployment_instance is defined and deployment_instance|bool == true
+
+- name: sapcontrol -nr <Inst> -function StartSystem
+  shell: /usr/local/bin/startsystem.sh
+  become: yes
+  become_user: "{{sid}}adm"
+  when: deployment_instance is defined and deployment_instance|bool == true
+

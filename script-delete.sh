@@ -1,0 +1,5 @@
+pcs resource delete rsc_SAPHanaTopology_L01_HDB10
+pcs resource delete rsc_SAPHana_L01_HDB10
+pcs resource delete msl_rsc_SAPHana_L01_HDB10
+pcs resource delete rsc_ip_SAPHana_L01_HDB10
+

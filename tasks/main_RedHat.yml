@@ -1,0 +1,41 @@
+---
+- name: install corosync packages
+  package:
+    name: 
+     - resource-agents
+     - policycoreutils-python
+     - pcs
+     - pacemaker
+     - fence-agents-all 
+    state: latest
+
+# should be confiugred before pacemaker configuration
+- name: disable firewall
+  service:
+    name: firewalld
+    enabled: no
+    state: stopped
+  ignore_errors: yes
+
+- name: enable pcsd 
+  service:
+    name: pcsd
+    enabled: yes
+    state: started
+
+- name: auth cluster
+  shell: "pcs cluster auth {{ ha_cluster_nodes }} -u hacluster -p {{ hacluster_password_clear }}"  
+  ignore_errors: yes
+  run_once: true
+  when: ansible_local.sva_cluster is not defined
+
+- name: start cluster
+  shell: "pcs cluster setup --start --name {{ ha_name }} {{ ha_cluster_nodes }} --force"
+  run_once: true
+  when: ansible_local.sva_cluster is not defined
+  
+
+- name: enable cluster
+  shell: "pcs cluster enable --all"
+  run_once: true
+  when: ansible_local.sva_cluster is not defined

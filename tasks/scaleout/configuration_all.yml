@@ -1,0 +1,72 @@
+---
+
+# https://www.suse.com/documentation/suse-best-practices/singlehtml/SLES4SAP-hana-scaleOut-PerfOpt-12/SLES4SAP-hana-scaleOut-PerfOpt-12.html
+# 7.1
+
+# create a directory if it doesn't exist
+- file:
+    path: /hana/shared/myHooks
+    state: directory
+    mode: 0755
+    owner: "{{ sid }}adm"
+    group: sapsys
+  when: deployment_instance is defined and deployment_instance|bool == true
+
+- copy: 
+    src: /usr/share/SAPHanaSR-ScaleOut/SAPHanaSR.py
+    dest: /hana/shared/myHooks
+    mode: 0755
+    remote_src: yes
+    owner: "{{ sid }}adm"
+    group: sapsys
+  when: deployment_instance is defined and deployment_instance|bool == true
+
+- template: 
+    src: stopsystem.sh.j2
+    dest: /usr/local/bin/stopsystem.sh
+    mode: 0755
+    owner: "{{ sid }}adm"
+    group: sapsys
+  when: deployment_instance is defined and deployment_instance|bool == true
+
+- template:
+    src: startsystem.sh.j2
+    dest: /usr/local/bin/startsystem.sh
+    mode: 0755
+    owner: "{{ sid }}adm"
+    group: sapsys
+  when: deployment_instance is defined and deployment_instance|bool == true
+
+- name: insert/update hook config to global.ini
+  blockinfile:
+    path: /hana/shared/{{ sidup }}/global/hdb/custom/config/global.ini
+    block: |
+      [ha_dr_provider_SAPHanaSR]
+      provider = SAPHanaSR
+      path = /hana/shared/myHooks
+      execution_order = 1
+      [trace]
+      ha_dr_saphanasr = info
+  when: deployment_instance is defined and deployment_instance|bool == true
+  notify: "sapcontrol -nr <Inst> -function StopSystem"
+
+- name: insert/update hook config to global.ini Start-System
+  blockinfile:
+    path: /hana/shared/{{ sidup }}/global/hdb/custom/config/global.ini
+    block: |
+      [ha_dr_provider_SAPHanaSR]
+      provider = SAPHanaSR
+      path = /hana/shared/myHooks
+      execution_order = 1
+      [trace]
+      ha_dr_saphanasr = info
+  when: deployment_instance is defined and deployment_instance|bool == true
+  notify: "sapcontrol -nr <Inst> -function StartSystem"
+
+- template:
+    src: sap-hana-scaleout.j2
+    dest: /etc/sudoers.d/sap-hana-scaleout
+    owner: root
+    group: root
+    mode: 400 
+    

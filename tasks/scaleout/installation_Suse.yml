@@ -1,0 +1,13 @@
+---
+- zypper:
+    name: ha_sles
+    state: latest
+    type: pattern
+
+- package:
+    name: SAPHanaSR
+    state: absent 
+
+- package:
+    name: SAPHanaSR-ScaleOut
+    state: latest

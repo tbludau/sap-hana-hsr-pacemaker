@@ -1,0 +1,3 @@
+primitive rsc_ip_{{ sidup }}_HDB{{ sap_system_number }} ocf:heartbeat:IPaddr2 \
+        op monitor interval="10s" timeout="20s" \
+        params ip="{{sva_pacemaker_vip}}"

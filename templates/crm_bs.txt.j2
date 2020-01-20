@@ -1,0 +1,10 @@
+property $id="cib-bootstrap-options" \
+              no-quorum-policy="freeze" \
+              stonith-enabled="true" \
+              stonith-action="reboot" \
+              stonith-timeout="150s"
+              rsc_defaults $id="rsc-options" \
+              resource-stickiness="1000" \
+              migration-threshold="5"
+              op_defaults $id="op-options" \
+              timeout="600"

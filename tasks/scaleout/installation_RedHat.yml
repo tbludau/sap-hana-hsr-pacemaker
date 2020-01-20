@@ -1,0 +1,13 @@
+---
+- package:
+    name: perl-Sys-Syslog-0.33-3.el7.x86_64
+    state: latest
+  when: ansible_facts['os_family']  == "RedHat"
+
+- package:
+    name: resource-agents-sap-hana-scaleout
+    state: latest
+  when: ansible_facts['os_family']  == "RedHat"
+
+
+

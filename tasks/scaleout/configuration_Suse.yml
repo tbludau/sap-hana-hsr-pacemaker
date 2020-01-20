@@ -1,0 +1,52 @@
+---
+
+- template:
+    src: crm_bs.txt.j2
+    dest: /var/tmp/crm_bs.txt
+    mode: 0755
+    owner: "root"
+    group: "root"
+  when: deployment_instance is defined and deployment_instance|bool == true
+
+- template:
+    src: crm-saphanatop.txt.j2
+    dest: /var/tmp/crm-saphanatop.txt
+    mode: 0755
+    owner: "root"
+    group: "root"
+  when: deployment_instance is defined and deployment_instance|bool == true
+
+- template:
+    src: crm-saphanacon.txt.j2
+    dest: /var/tmp/crm-saphanacon.txt
+    mode: 0755
+    owner: "root"
+    group: "root"
+  when: deployment_instance is defined and deployment_instance|bool == true
+
+- template:
+    src: crm-vip.txt.j2
+    dest: /var/tmp/crm-vip.txt
+    mode: 0755
+    owner: "root"
+    group: "root"
+  when: deployment_instance is defined and deployment_instance|bool == true
+
+- template:
+    src: crm-cs.txt.j2
+    dest: /var/tmp/crm-cs.txt
+    mode: 0755
+    owner: "root"
+    group: "root"
+  when: deployment_instance is defined and deployment_instance|bool == true
+
+- name: crm configure load 
+  shell: "crm configure load update /var/tmp/crm_bs.txt"
+  run_once: true
+  when: deployment_instance is defined and deployment_instance|bool == true
+
+    
+- name: crm maintenance
+  shell: "crm configure property maintenance-mode=true"
+  run_once: true
+

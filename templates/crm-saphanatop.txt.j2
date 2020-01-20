@@ -1,0 +1,7 @@
+primitive rsc_SAPHanaTop_{{ sidup }}_HDB{{ sap_system_number }} ocf:suse:SAPHanaTopology \
+        op monitor interval="10" timeout="600" \
+        op start interval="0" timeout="600" \
+        op stop interval="0" timeout="300" \
+        params SID="{{ sidup }}" InstanceNumber="{{ sap_system_number }}"
+clone cln_SAPHanaTop_{{ sidup }}_HDB{{ sap_system_number }} rsc_SAPHanaTop_{{ sidup }}_HDB{{ sap_system_number }} \
+        meta clone-node-max="1" interleave="true"

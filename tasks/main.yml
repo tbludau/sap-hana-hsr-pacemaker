@@ -1,0 +1,31 @@
+---
+
+- name: Add group hacluster
+  group:
+    name: haclient
+    gid: 189
+
+# me: Add the user 'johnd' with a specific uid and a primary group of 'admin'
+- name: Add user hacluster
+  user:
+    name: hacluster
+    uid: 189
+    comment: hacluster
+    group: haclient
+    password: "{{ hacluster_password_clear | password_hash('sha512') }}"
+
+- include_tasks: '{{ scale_type }}/installation_{{ ansible_os_family }}.yml'
+  when: ansible_local.sva_cluster is not defined
+
+- include_tasks: 'main_{{ ansible_os_family }}.yml'
+  when: ansible_local.sva_cluster is not defined
+
+- include_tasks: '{{ scale_type }}/configuration_all.yml'
+  when: ansible_local.sva_cluster is not defined
+
+- include_tasks: '{{ scale_type }}/configuration_{{ ansible_os_family }}.yml'
+  when: ansible_local.sva_cluster is not defined
+
+- name: Create local fact
+  ini_file: dest=/etc/ansible/facts.d/sva_cluster.fact section=sva_cluster option=configured value=true
+- meta: flush_handlers

@@ -1,0 +1,12 @@
+primitive rsc_SAPHanaCon_{{ sidup }}_HDB{{ sap_system_number}} ocf:suse:SAPHanaController \
+        op start interval="0" timeout="3600" \
+        op stop interval="0" timeout="3600" \
+        op promote interval="0" timeout="3600" \
+        op monitor interval="60" role="Master" timeout="700" \
+        op monitor interval="61" role="Slave" timeout="700" \
+        params SID="{{ sidup }}" InstanceNumber="{{ sap_system_number }}" \
+        PREFER_SITE_TAKEOVER="true" \
+        DUPLICATE_PRIMARY_TIMEOUT="7200" AUTOMATED_REGISTER="true"
+
+ms msl_SAPHanaCon_{{ sidup }}_HDB{{ sap_system_number }} rsc_SAPHanaCon_{{ sidup }}_HDB{{ sap_system_number }} \
+        meta clone-node-max="1" master-max="1" interleave="true"

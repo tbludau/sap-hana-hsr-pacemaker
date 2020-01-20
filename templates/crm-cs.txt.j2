@@ -1,0 +1,4 @@
+colocation col_saphana_ip_{{ sidup }}_HDB{{ sap_system_number }} 2000: rsc_ip_{{ sidup }}_HDB{{ sap_system_number }}:Started \
+    msl_SAPHanaCon_{{ sidup }}_HDB{{ sap_system_number }}:Master
+order ord_SAPHana_{{ sidup }}_HDB{{ sap_system_number }} Optional: cln_SAPHanaTop_{{ sidup }}_HDB{{ sap_system_number }} \
+    msl_SAPHanaCon_{{ sidup }}_HDB{{ sap_system_number }}

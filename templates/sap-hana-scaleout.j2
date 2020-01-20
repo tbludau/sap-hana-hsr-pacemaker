@@ -1,0 +1,7 @@
+# https://www.suse.com/documentation/suse-best-practices/singlehtml/SLES4SAP-hana-scaleOut-PerfOpt-12/SLES4SAP-hana-scaleOut-PerfOpt-12.html
+# 7.3
+# SAPHanaSR-ScaleOut needs for srHook
+Cmnd_Alias SOK   = /usr/sbin/crm_attribute -n hana_{{ sid }}_glob_srHook -v SOK   -t crm_config -s SAPHanaSR
+Cmnd_Alias SFAIL = /usr/sbin/crm_attribute -n hana_{{ sid }}_glob_srHook -v SFAIL -t crm_config -s SAPHanaSR
+{{ sid }}adm ALL=(ALL) NOPASSWD: SOK, SFAIL
+{{ sid }}adm ALL=(ALL) NOPASSWD: ALL

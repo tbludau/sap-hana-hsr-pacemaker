@@ -1,0 +1,106 @@
+---
+# Scaleup
+# Documentation:
+# https://access.redhat.com/articles/3004101
+- package:
+    name: resource-agents-sap-hana
+    state: latest
+
+
+
+###
+#   # RedHat
+#    # Check if Database entry log_mode is normal (Requirement)
+#    exec { '/usr/bin/ls > /tmp/output.txt':
+#      onlyif => "/usr/bin/su - ${sapappsid}adm -c \"hdbsql -u system -p ${system_user_passwd_clear} -i ${sapsystemnummer} \\\"select value from \\\"SYS\\\".\\\"M_INIFILE_CONTENTS\\\" where key='log_mode'\\\"\" | grep \\\"normal\\\"",
+#    }
+###
+
+
+#- pluster only starts if both nodes online
+#      # pcs cluster quorum unblock
+#      cs_property { 'no-quorum-policy' :
+#        value => 'stop',
+#      }
+
+- name: pcs set resource defaults default-resource-stickness=1000
+  shell: "pcs resource defaults default-resource-stickness=1000"
+  run_once: true
+
+- name: pcs set resource defaults default-migration-threshold=5000
+  shell: "pcs resource defaults default-migration-threshold=5000"
+  run_once: true
+
+# Nicht Dokumentiert
+# pcs resource op defaults timeout=600s
+
+
+# Create maintenance mode while no automatic application server installation
+# 20170817 Thomas Bludau / Computacenter
+# Special for BSH
+
+# Set maintenance mode to be sure nothing will change during configuration
+- name: pcs property set maintenance-mode=true
+  shell: "pcs property set maintenance-mode=true"
+  run_once: true
+
+
+#- name: "pcs Controller clone"
+#  shell: "pcs resource master msl_rsc_SAPHana_{{ sidup }}_{{sap_system_number}} rsc_SAPHana_{{ sidup }}_{{sap_system_number}} \
+#  meta master-max='1' clone-node-max=1 interleave=true"
+#  run_once: true
+
+- name: "pcs resource SAPHanaTopology"
+  shell: "pcs resource create SAPHanaTopology_{{ sidup }}_{{ sap_system_number }} SAPHanaTopology \
+    SID={{ sidup }} \
+    InstanceNumber={{ sap_system_number }} \
+    op start timeout=600 \
+    op stop timeout=300 \
+    op monitor interval=10 timeout=600 \
+    --clone clone-max=2 \
+    clone-node-max=1 \
+    interleave=true"
+  run_once: true
+
+- name: "pcs SAPHana_{{sidup}}_{{sap_system_number}}"
+  shell: "pcs resource create SAPHana_{{ sidup }}_{{ sap_system_number }} SAPHana \
+    SID={{ sidup }} \
+    InstanceNumber={{ sap_system_number}} \
+    PREFER_SITE_TAKEOVER=true \
+    DUPLICATE_PRIMARY_TIMEOUT=7200 \
+    AUTOMATED_REGISTER=true \
+    --master meta notify=true \
+    clone-max=2 \
+    clone-node-max=1 \
+    interleave=true \
+    op start timeout=3600 \
+    op stop timeout=3600 \
+    op promote timeout=3600 \
+    op demote timeout=3600 \
+    op monitor interval=59 role=\"Master\" timeout=700 \
+    op monitor interval=61 role=\"Slave\" timeout=700"
+  run_once: true
+
+- name: "pcs add virtual ip"
+  shell: "pcs resource create vip_{{ sidup }}_{{ sap_system_number }} \
+    IPaddr2 ip={{ sva_pacemaker_vip }}"
+  run_once: true
+
+- name: "pcs constraint clone master "
+  shell: "pcs constraint order \
+    SAPHanaTopology_{{ sidup }}_{{ sap_system_number }}-clone \
+    then SAPHana_{{ sidup }}_{{ sap_system_number }}-master \
+    symmetrical=false"
+  run_once: true
+
+- name: "pcs constraint ip"
+  shell: "pcs constraint colocation \
+    add vip_{{ sidup }}_{{ sap_system_number }} \
+    with master SAPHana_{{ sidup }}_{{ sap_system_number }}-master \
+    2000"
+  run_once: true
+
+
+- name: pcs property set maintenance-mode=false
+  shell: "pcs property set maintenance-mode=false"
+  run_once: true

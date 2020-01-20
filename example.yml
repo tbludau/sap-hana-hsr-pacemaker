@@ -1,0 +1,14 @@
+---
+- hosts: all
+  vars:
+    sid: rh1 
+    sidup: RH1
+    sap_system_number: "00"
+    hacluster_password_clear: Start1234
+    ha_name: hanascaleoutsr
+    ha_cluster_nodes: "dc1hana01 dc1hana02 dc1hana03 dc1hana04 dc2hana01 dc2hana02 dc2hana03 dc2hana04 majoritymaker"
+    sva_pacemaker_vip: "{{ vip }}"
+    scale_type: scaleout
+    majoritymaker: "majoritymaker"
+  roles:
+    - sva-pacemaker

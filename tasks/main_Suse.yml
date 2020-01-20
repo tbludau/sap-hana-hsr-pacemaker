@@ -1,0 +1,43 @@
+---
+- name: restart chronyd
+  service:
+    name: chronyd 
+    state: started
+    enabled: yes
+
+- name: stop corosync while deploying
+  service:
+    name: corosync 
+    state: stopped
+  when: ansible_local.sva_cluster is not defined
+
+- name: Cluster Init 
+  shell: "ha-cluster-init -u --name {{ ha_name }} -y csync2 corosync storage cluster"  
+  run_once: true
+  when: ansible_local.sva_cluster is not defined
+
+- name: Cluster Init 
+  shell: "ha-cluster-init -N '{{ ha_cluster_nodes }}' -u --name {{ ha_name }} -y csync2 corosync storage cluster"  
+  run_once: true
+  when: ansible_local.sva_cluster is not defined 
+
+#- name: join cluster
+#  delegate_to:  '{{item}}'
+#  shell: 'ha-cluster-join -y -c dc1hana01'
+#  when: ansible_local.sva_cluster is not defined 
+#  run_once: true
+#  ignore_errors: true
+#  loop: '{{ groups["hana"], groups["majoritymaker"]}}'
+
+- name: start pacemaker while deploying
+  service:
+    name: pacemaker
+    state: started
+  when: ansible_local.sva_cluster is not defined
+
+- name: start corosync while deploying
+  service:
+    name: corosync
+    state: started
+  when: ansible_local.sva_cluster is not defined
+
